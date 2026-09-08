@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentropolis.example/schemas/settlement-state.schema.json",
+  "title": "GREENRAILS Settlement State Record",
+  "description": "Current state of one settlement plus its append-only transition log. States are the canonical GREENRAILS names; transitions outside the allowed table are invalid.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "protocol_version",
+    "mock",
+    "display_notice",
+    "quote_id",
+    "quote_digest",
+    "idempotency_key",
+    "state",
+    "terminal",
+    "transitions",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "protocol_version": {"const": "greenrails.settlement.v1"},
+    "mock": {"$ref": "settlement-quote.schema.json#/$defs/mock_flag"},
+    "display_notice": {"$ref": "settlement-quote.schema.json#/$defs/display_notice"},
+    "quote_id": {"type": "string", "minLength": 1},
+    "quote_digest": {"$ref": "settlement-quote.schema.json#/$defs/digest"},
+    "idempotency_key": {"type": "string", "minLength": 8},
+    "state": {"$ref": "#/$defs/state"},
+    "terminal": {"type": "boolean"},
+    "reservation": {"$ref": "#/$defs/reservation"},
+    "input_authorization": {"$ref": "#/$defs/input_authorization"},
+    "xents_route": {"$ref": "#/$defs/xents_route"},
+    "nft_transfer": {"$ref": "#/$defs/nft_transfer"},
+    "usdc_payout": {"$ref": "#/$defs/usdc_payout"},
+    "refund": {"$ref": "#/$defs/refund"},
+    "manual_review": {"$ref": "#/$defs/manual_review"},
+    "transitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/transition"}
+    },
+    "updated_at": {"type": "string", "format": "date-time"},
+    "metadata": {"type": "object"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"state": {"$ref": "#/$defs/terminal_state"}}},
+      "then": {"properties": {"terminal": {"const": true}}},
+      "else": {"properties": {"terminal": {"const": false}}}
+    },
+    {
+      "if": {"properties": {"state": {"enum": ["REFUND_PENDING", "REFUNDED"]}}},
+      "then": {"required": ["refund"]}
+    },
+    {
+      "if": {"properties": {"state": {"const": "MANUAL_REVIEW"}}},
+      "then": {"required": ["manual_review"]}
+    }
+  ],
+  "$defs": {
+    "state": {
+      "enum": [
+        "QUOTED",
+        "USDC_RESERVED",
+        "INPUT_AUTHORIZED",
+        "XENTS_ROUTED",
+        "NFT_TRANSFER_PENDING",
+        "NFT_TRANSFER_CONFIRMED",
+        "USDC_RELEASED",
+        "RECEIPT_FINALIZED",
+        "QUOTE_EXPIRED",
+        "INPUT_FAILED",
+        "INSUFFICIENT_LIQUIDITY",
+        "NFT_OWNERSHIP_CHANGED",
+        "NFT_TRANSFER_FAILED",
+        "CHAIN_CONFIRMATION_TIMEOUT",
+        "USDC_PAYOUT_FAILED",
+        "REFUND_PENDING",
+        "REFUNDED",
+        "MANUAL_REVIEW"
+      ]
+    },
+    "success_state": {
+      "enum": [
+        "QUOTED",
+        "USDC_RESERVED",
+        "INPUT_AUTHORIZED",
+        "XENTS_ROUTED",
+        "NFT_TRANSFER_PENDING",
+        "NFT_TRANSFER_CONFIRMED",
+        "USDC_RELEASED",
+        "RECEIPT_FINALIZED"
+      ]
+    },
+    "terminal_state": {
+      "enum": [
+        "RECEIPT_FINALIZED",
+        "QUOTE_EXPIRED",
+        "INPUT_FAILED",
+        "INSUFFICIENT_LIQUIDITY",
+        "REFUNDED",
+        "MANUAL_REVIEW"
+      ]
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "at", "actor", "reason_code"],
+      "properties": {
+        "from": {"oneOf": [{"$ref": "#/$defs/state"}, {"const": null}]},
+        "to": {"$ref": "#/$defs/state"},
+        "at": {"type": "string", "format": "date-time"},
+        "actor": {"enum": ["greenrails", "buyer", "seller", "liquidity_provider", "chain_observer", "operator", "timer"]},
+        "reason_code": {"type": "string", "minLength": 1},
+        "evidence_digest": {"$ref": "settlement-quote.schema.json#/$defs/digest"}
+      }
+    },
+    "reservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "asset", "chain", "amount", "status", "reserved_at", "expires_at"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "asset": {"const": "USDC"},
+        "chain": {"const": "base"},
+        "amount": {"$ref": "settlement-quote.schema.json#/$defs/amount"},
+        "liquidity_source": {"type": "string"},
+        "status": {"enum": ["held", "released", "returned", "failed"]},
+        "reserved_at": {"type": "string", "format": "date-time"},
+        "expires_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "input_authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "rail", "asset", "amount", "status"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "rail": {"$ref": "settlement-quote.schema.json#/$defs/input_leg/properties/rail"},
+        "asset": {"type": "string", "minLength": 2},
+        "amount": {"$ref": "settlement-quote.schema.json#/$defs/amount"},
+        "status": {"enum": ["authorized", "captured", "declined", "voided", "refunded"]},
+        "provider": {"type": "string"},
+        "provider_reference": {"type": "string"},
+        "authorized_at": {"type": "string", "format": "date-time"},
+        "failure_code": {"type": "string"}
+      }
+    },
+    "xents_route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "amount_out", "status"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "route_provider": {"type": "string"},
+        "amount_in": {"$ref": "settlement-quote.schema.json#/$defs/amount"},
+        "amount_out": {"$ref": "settlement-quote.schema.json#/$defs/amount", "description": "Exact $XENTS output. MUST equal quote.xents_output.amount."},
+        "status": {"enum": ["pending", "routed", "failed"]},
+        "route_digest": {"$ref": "settlement-quote.schema.json#/$defs/digest"},
+        "routed_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "nft_transfer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chain", "contract", "token_id", "from", "to", "status"],
+      "properties": {
+        "chain": {"$ref": "settlement-quote.schema.json#/$defs/chain"},
+        "contract": {"type": "string", "minLength": 1},
+        "token_id": {"type": "string", "minLength": 1},
+        "from": {"type": "string", "minLength": 1},
+        "to": {"type": "string", "minLength": 1},
+        "status": {"enum": ["pending", "submitted", "confirmed", "failed", "ownership_changed", "timeout"]},
+        "tx_reference": {"type": "string"},
+        "confirmations": {"type": "integer", "minimum": 0},
+        "required_confirmations": {"type": "integer", "minimum": 1},
+        "confirmed_at": {"type": "string", "format": "date-time"},
+        "failure_code": {"type": "string"}
+      }
+    },
+    "usdc_payout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset", "chain", "amount", "destination", "status"],
+      "properties": {
+        "asset": {"const": "USDC"},
+        "chain": {"const": "base"},
+        "amount": {"$ref": "settlement-quote.schema.json#/$defs/amount"},
+        "destination": {"type": "string", "minLength": 1},
+        "status": {"enum": ["pending", "submitted", "released", "failed"]},
+        "tx_reference": {"type": "string"},
+        "confirmations": {"type": "integer", "minimum": 0},
+        "required_confirmations": {"type": "integer", "minimum": 1},
+        "released_at": {"type": "string", "format": "date-time"},
+        "failure_code": {"type": "string"}
+      }
+    },
+    "refund": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "asset", "amount", "destination", "status", "reason_code"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "asset": {"type": "string", "minLength": 2},
+        "amount": {"$ref": "settlement-quote.schema.json#/$defs/amount"},
+        "destination": {"type": "string", "minLength": 1},
+        "status": {"enum": ["pending", "completed", "failed"]},
+        "reason_code": {"type": "string", "minLength": 1},
+        "provider_reference": {"type": "string"},
+        "completed_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "manual_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "opened_at", "reason_code", "escalated_to"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "opened_at": {"type": "string", "format": "date-time"},
+        "reason_code": {"type": "string", "minLength": 1},
+        "escalated_to": {"type": "string", "minLength": 1, "description": "Governance tier owner, e.g. T0 AEGIS-ASSURANCE."},
+        "held_assets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["asset", "amount", "holder"],
+            "properties": {
+              "asset": {"type": "string", "minLength": 2},
+              "amount": {"$ref": "settlement-quote.schema.json#/$defs/amount"},
+              "holder": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  }
+}

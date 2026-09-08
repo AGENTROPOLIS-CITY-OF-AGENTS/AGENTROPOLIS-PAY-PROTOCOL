@@ -1,0 +1,7 @@
+{
+  "name": "agentropolis-pay-protocol-schema-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {"validate": "node validate-schemas.mjs"},
+  "devDependencies": {"ajv": "^8.17.1", "ajv-formats": "^3.0.1"}
+}

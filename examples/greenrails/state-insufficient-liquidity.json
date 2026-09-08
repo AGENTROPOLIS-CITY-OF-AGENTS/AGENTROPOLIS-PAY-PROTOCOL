@@ -1,0 +1,40 @@
+{
+  "id": "settle_usdc_02",
+  "protocol_version": "greenrails.settlement.v1",
+  "mock": true,
+  "display_notice": "MOCK SETTLEMENT · NO FUNDS WILL MOVE",
+  "idempotency_key": "grn-usdc-0001",
+  "quote_id": "quote_usdc_01",
+  "quote_digest": "sha256:quote_usdc_01-digest",
+  "state": "INSUFFICIENT_LIQUIDITY",
+  "terminal": true,
+  "reservation": {
+    "id": "res_01",
+    "asset": "USDC",
+    "chain": "base",
+    "amount": "40.00",
+    "liquidity_source": "mock-liquidity-pool",
+    "status": "failed",
+    "reserved_at": "2026-09-08T12:01:00Z",
+    "expires_at": "2026-09-08T12:16:00Z"
+  },
+  "transitions": [
+    {
+      "from": null,
+      "to": "QUOTED",
+      "at": "2026-09-08T12:00:00Z",
+      "actor": "greenrails",
+      "reason_code": "quote_issued",
+      "evidence_digest": "sha256:evidence-quoted-00"
+    },
+    {
+      "from": "QUOTED",
+      "to": "INSUFFICIENT_LIQUIDITY",
+      "at": "2026-09-08T12:01:00Z",
+      "actor": "liquidity_provider",
+      "reason_code": "usdc_hold_rejected_partial_fill",
+      "evidence_digest": "sha256:evidence-insufficient_liquidity-01"
+    }
+  ],
+  "updated_at": "2026-09-08T12:01:00Z"
+}

@@ -1,0 +1,75 @@
+{
+  "id": "rcpt_eth_01",
+  "protocol_version": "greenrails.settlement.v1",
+  "mock": true,
+  "display_notice": "MOCK SETTLEMENT · NO FUNDS WILL MOVE",
+  "idempotency_key": "grn-eth-0001",
+  "settlement_id": "settle_eth_01",
+  "quote_id": "quote_eth_01",
+  "quote_digest": "sha256:quote_eth_01-digest",
+  "final_state": "QUOTE_EXPIRED",
+  "outcome": "expired",
+  "buyer_id": "buyer_mock_03",
+  "seller_id": "seller_mock_01",
+  "nft": {
+    "chain": "ethereum",
+    "contract": "0xLEGACY000000000000000000000000000000000001",
+    "token_id": "1042",
+    "owner_at_quote": "0xSELLER00000000000000000000000000000000001",
+    "collection": "Legacy Genesis"
+  },
+  "legs": {
+    "input": {
+      "asset": "ETH",
+      "amount": "0",
+      "status": "not_started"
+    },
+    "xents": {
+      "asset": "XENTS",
+      "amount": "0",
+      "status": "not_started",
+      "chain": "base"
+    },
+    "usdc_payout": {
+      "asset": "USDC",
+      "amount": "0",
+      "status": "not_started",
+      "chain": "base"
+    }
+  },
+  "fees": [
+    {
+      "code": "network",
+      "payer": "buyer",
+      "asset": "ETH",
+      "amount": "0.0002"
+    },
+    {
+      "code": "routing",
+      "payer": "buyer",
+      "asset": "XENTS",
+      "amount": "5"
+    },
+    {
+      "code": "platform",
+      "payer": "seller",
+      "asset": "USDC",
+      "amount": "2.00"
+    }
+  ],
+  "verification": {
+    "nft_transfer_verified": false,
+    "usdc_payout_verified": false
+  },
+  "recorded_at": "2026-09-08T12:05:00Z",
+  "evidence_digest": "sha256:evidence-log-rcpt_eth_01",
+  "signature": {
+    "alg": "mock-none",
+    "kid": "mock-key-01",
+    "signer": "greenrails-settlement-signer",
+    "canonicalization": "rfc8785-jcs",
+    "payload_digest": "sha256:receipt-payload-05",
+    "value": "MOCK-SIGNATURE",
+    "signed_at": "2026-09-08T12:05:00Z"
+  }
+}

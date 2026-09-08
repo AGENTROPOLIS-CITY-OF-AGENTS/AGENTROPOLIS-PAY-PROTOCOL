@@ -1,0 +1,88 @@
+{
+  "id": "rcpt_card_01",
+  "protocol_version": "greenrails.settlement.v1",
+  "mock": true,
+  "display_notice": "MOCK SETTLEMENT · NO FUNDS WILL MOVE",
+  "idempotency_key": "grn-card-0001",
+  "settlement_id": "settle_card_01",
+  "quote_id": "quote_card_01",
+  "quote_digest": "sha256:quote_card_01-digest",
+  "final_state": "RECEIPT_FINALIZED",
+  "outcome": "succeeded",
+  "buyer_id": "buyer_mock_01",
+  "seller_id": "seller_mock_01",
+  "nft": {
+    "chain": "ethereum",
+    "contract": "0xLEGACY000000000000000000000000000000000001",
+    "token_id": "1042",
+    "owner_at_quote": "0xSELLER00000000000000000000000000000000001",
+    "collection": "Legacy Genesis"
+  },
+  "legs": {
+    "input": {
+      "asset": "USD",
+      "amount": "45.00",
+      "status": "completed",
+      "reference": "mock_auth_01"
+    },
+    "xents": {
+      "asset": "XENTS",
+      "amount": "1000",
+      "status": "completed",
+      "chain": "base",
+      "reference": "mock_route_01"
+    },
+    "usdc_payout": {
+      "asset": "USDC",
+      "amount": "40.00",
+      "status": "completed",
+      "chain": "base",
+      "reference": "mock_base_tx_01"
+    }
+  },
+  "fees": [
+    {
+      "code": "processing",
+      "payer": "buyer",
+      "asset": "USD",
+      "amount": "1.50",
+      "description": "card processing"
+    },
+    {
+      "code": "platform",
+      "payer": "seller",
+      "asset": "USDC",
+      "amount": "2.00"
+    }
+  ],
+  "verification": {
+    "nft_transfer_verified": true,
+    "usdc_payout_verified": true,
+    "nft_tx_reference": "mock_eth_tx_01",
+    "usdc_tx_reference": "mock_base_tx_01",
+    "nft_confirmations": 12,
+    "usdc_confirmations": 6
+  },
+  "recorded_at": "2026-09-08T12:13:00Z",
+  "evidence_digest": "sha256:evidence-log-rcpt_card_01",
+  "signature": {
+    "alg": "mock-none",
+    "kid": "mock-key-01",
+    "signer": "greenrails-settlement-signer",
+    "canonicalization": "rfc8785-jcs",
+    "payload_digest": "sha256:receipt-payload-13",
+    "value": "MOCK-SIGNATURE",
+    "signed_at": "2026-09-08T12:13:00Z"
+  },
+  "pay_receipt": {
+    "id": "receipt_pay_01",
+    "intent_id": "intent_card_01",
+    "mandate_id": "mandate_buyer_01",
+    "outcome": "succeeded",
+    "provider": "mock-provider",
+    "amount": "45.00",
+    "asset": "USD",
+    "recorded_at": "2026-09-08T12:13:00Z",
+    "evidence_digest": "sha256:pay-evidence-digest-01"
+  }
+}

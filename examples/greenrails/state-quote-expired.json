@@ -1,0 +1,30 @@
+{
+  "id": "settle_eth_01",
+  "protocol_version": "greenrails.settlement.v1",
+  "mock": true,
+  "display_notice": "MOCK SETTLEMENT · NO FUNDS WILL MOVE",
+  "idempotency_key": "grn-eth-0001",
+  "quote_id": "quote_eth_01",
+  "quote_digest": "sha256:quote_eth_01-digest",
+  "state": "QUOTE_EXPIRED",
+  "terminal": true,
+  "transitions": [
+    {
+      "from": null,
+      "to": "QUOTED",
+      "at": "2026-09-08T12:00:00Z",
+      "actor": "greenrails",
+      "reason_code": "quote_issued",
+      "evidence_digest": "sha256:evidence-quoted-00"
+    },
+    {
+      "from": "QUOTED",
+      "to": "QUOTE_EXPIRED",
+      "at": "2026-09-08T12:05:00Z",
+      "actor": "timer",
+      "reason_code": "quote_ttl_elapsed",
+      "evidence_digest": "sha256:evidence-quote_expired-05"
+    }
+  ],
+  "updated_at": "2026-09-08T12:05:00Z"
+}
