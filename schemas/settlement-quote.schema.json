@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentropolis.example/schemas/settlement-quote.schema.json",
+  "title": "GREENRAILS Settlement Quote",
+  "description": "Exact-output quote for a HOOD TERPS purchase: buyer input (fiat or crypto) is converted into an exact amount of $XENTS for participation; the seller is paid in USDC on Base. Fees are disclosed amounts only. No price, yield, or peg claim is made or implied.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "protocol_version",
+    "mock",
+    "display_notice",
+    "idempotency_key",
+    "buyer",
+    "seller",
+    "listing",
+    "input",
+    "xents_output",
+    "usdc_payout",
+    "fees",
+    "timeouts",
+    "confirmation_thresholds",
+    "created_at",
+    "expires_at",
+    "quote_digest"
+  ],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "protocol_version": {"const": "greenrails.settlement.v1"},
+    "mock": {"$ref": "#/$defs/mock_flag"},
+    "display_notice": {"$ref": "#/$defs/display_notice"},
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "description": "Client-chosen key. Same key + same quote_digest returns the same quote; same key + different digest MUST be rejected."
+    },
+    "buyer": {"$ref": "#/$defs/party"},
+    "seller": {"$ref": "#/$defs/party"},
+    "listing": {"$ref": "#/$defs/listing"},
+    "input": {"$ref": "#/$defs/input_leg"},
+    "xents_output": {"$ref": "#/$defs/xents_leg"},
+    "usdc_payout": {"$ref": "#/$defs/usdc_leg"},
+    "fees": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/fee"},
+      "description": "Every fee charged on this settlement, itemized. Empty array is valid."
+    },
+    "timeouts": {"$ref": "#/$defs/timeouts"},
+    "confirmation_thresholds": {"$ref": "#/$defs/confirmation_thresholds"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "quote_digest": {"$ref": "#/$defs/digest"},
+    "metadata": {"type": "object"}
+  },
+  "$defs": {
+    "mock_flag": {
+      "type": "boolean",
+      "const": true,
+      "description": "Protocol version v1 is mock-only. A value other than true is invalid."
+    },
+    "display_notice": {
+      "type": "string",
+      "const": "MOCK SETTLEMENT · NO FUNDS WILL MOVE"
+    },
+    "digest": {"type": "string", "pattern": "^sha256:[A-Za-z0-9._:-]{8,}$"},
+    "amount": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]{1,18})?$"},
+    "chain": {"enum": ["base", "ethereum", "polygon", "solana", "xrpl", "fiat"]},
+    "party": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "role": {"enum": ["buyer", "seller"]},
+        "wallet": {"type": "string", "minLength": 1},
+        "wallet_chain": {"$ref": "#/$defs/chain"},
+        "payout_wallet": {"type": "string", "minLength": 1, "description": "Seller only. Base address receiving USDC."}
+      }
+    },
+    "listing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "nft"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "nft": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["chain", "contract", "token_id", "owner_at_quote"],
+          "properties": {
+            "chain": {"$ref": "#/$defs/chain", "description": "Native chain of the NFT. The NFT stays on this chain; it is never bridged or burned."},
+            "contract": {"type": "string", "minLength": 1},
+            "token_id": {"type": "string", "minLength": 1},
+            "owner_at_quote": {"type": "string", "minLength": 1},
+            "collection": {"type": "string"}
+          }
+        }
+      }
+    },
+    "input_leg": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "asset", "amount", "rail"],
+      "properties": {
+        "kind": {"enum": ["fiat", "crypto"]},
+        "asset": {"type": "string", "minLength": 2, "description": "e.g. USD, USDC, ETH"},
+        "amount": {"$ref": "#/$defs/amount", "description": "Maximum input the buyer authorizes. Exact-output: unused input is not collected."},
+        "rail": {"enum": ["card", "ach", "wire", "base_usdc", "base_eth", "ethereum_eth", "xrpl_xrp", "xrpl_rlusd", "solana_sol"]},
+        "chain": {"$ref": "#/$defs/chain"}
+      }
+    },
+    "xents_leg": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset", "chain", "amount", "route_provider"],
+      "properties": {
+        "asset": {"const": "XENTS"},
+        "chain": {"const": "base"},
+        "amount": {"$ref": "#/$defs/amount", "description": "Exact $XENTS output required for participation/settlement."},
+        "route_provider": {"type": "string", "minLength": 1},
+        "route_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "usdc_leg": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset", "chain", "amount", "destination"],
+      "properties": {
+        "asset": {"const": "USDC"},
+        "chain": {"const": "base"},
+        "amount": {"$ref": "#/$defs/amount", "description": "Seller payout amount. MUST be fully reserved before any buyer input is accepted."},
+        "destination": {"type": "string", "minLength": 1},
+        "liquidity_source": {"type": "string"}
+      }
+    },
+    "fee": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "payer", "asset", "amount"],
+      "properties": {
+        "code": {"enum": ["network", "routing", "processing", "platform", "escrow"]},
+        "payer": {"enum": ["buyer", "seller"]},
+        "asset": {"type": "string", "minLength": 2},
+        "amount": {"$ref": "#/$defs/amount"},
+        "description": {"type": "string"}
+      }
+    },
+    "timeouts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quote_ttl_seconds", "input_authorization_seconds", "nft_transfer_seconds", "usdc_payout_seconds"],
+      "properties": {
+        "quote_ttl_seconds": {"type": "integer", "minimum": 1},
+        "input_authorization_seconds": {"type": "integer", "minimum": 1},
+        "nft_transfer_seconds": {"type": "integer", "minimum": 1},
+        "usdc_payout_seconds": {"type": "integer", "minimum": 1}
+      }
+    },
+    "confirmation_thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nft_chain_confirmations", "base_confirmations"],
+      "properties": {
+        "nft_chain_confirmations": {"type": "integer", "minimum": 1},
+        "base_confirmations": {"type": "integer", "minimum": 1},
+        "input_chain_confirmations": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

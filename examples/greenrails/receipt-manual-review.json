@@ -1,0 +1,77 @@
+{
+  "id": "rcpt_card_03",
+  "protocol_version": "greenrails.settlement.v1",
+  "mock": true,
+  "display_notice": "MOCK SETTLEMENT · NO FUNDS WILL MOVE",
+  "idempotency_key": "grn-card-0001",
+  "settlement_id": "settle_card_03",
+  "quote_id": "quote_card_01",
+  "quote_digest": "sha256:quote_card_01-digest",
+  "final_state": "MANUAL_REVIEW",
+  "outcome": "failed",
+  "buyer_id": "buyer_mock_01",
+  "seller_id": "seller_mock_01",
+  "nft": {
+    "chain": "ethereum",
+    "contract": "0xLEGACY000000000000000000000000000000000001",
+    "token_id": "1042",
+    "owner_at_quote": "0xSELLER00000000000000000000000000000000001",
+    "collection": "Legacy Genesis"
+  },
+  "legs": {
+    "input": {
+      "asset": "USD",
+      "amount": "45.00",
+      "status": "completed",
+      "reference": "mock_auth_01"
+    },
+    "xents": {
+      "asset": "XENTS",
+      "amount": "1000",
+      "status": "held",
+      "chain": "base"
+    },
+    "usdc_payout": {
+      "asset": "USDC",
+      "amount": "40.00",
+      "status": "held",
+      "chain": "base"
+    }
+  },
+  "fees": [
+    {
+      "code": "processing",
+      "payer": "buyer",
+      "asset": "USD",
+      "amount": "1.50",
+      "description": "card processing"
+    },
+    {
+      "code": "platform",
+      "payer": "seller",
+      "asset": "USDC",
+      "amount": "2.00"
+    }
+  ],
+  "verification": {
+    "nft_transfer_verified": true,
+    "usdc_payout_verified": false,
+    "nft_tx_reference": "mock_eth_tx_01",
+    "nft_confirmations": 12
+  },
+  "recorded_at": "2026-09-08T12:26:00Z",
+  "evidence_digest": "sha256:evidence-log-rcpt_card_03",
+  "signature": {
+    "alg": "mock-none",
+    "kid": "mock-key-01",
+    "signer": "greenrails-settlement-signer",
+    "canonicalization": "rfc8785-jcs",
+    "payload_digest": "sha256:receipt-payload-26",
+    "value": "MOCK-SIGNATURE",
+    "signed_at": "2026-09-08T12:26:00Z"
+  },
+  "metadata": {
+    "manual_review_case_id": "case_01",
+    "escalated_to": "T0:AEGIS-ASSURANCE"
+  }
+}

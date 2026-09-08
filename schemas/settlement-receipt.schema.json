@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentropolis.example/schemas/settlement-receipt.schema.json",
+  "title": "GREENRAILS Settlement Receipt",
+  "description": "Tamper-evident record of a settlement's terminal outcome. Wraps (does not replace) the AGENTROPOLIS Pay Receipt: `pay_receipt` links to the receipt.schema.json object when the settlement was executed under a Pay mandate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "protocol_version",
+    "mock",
+    "display_notice",
+    "settlement_id",
+    "quote_id",
+    "quote_digest",
+    "idempotency_key",
+    "final_state",
+    "outcome",
+    "buyer_id",
+    "seller_id",
+    "nft",
+    "legs",
+    "fees",
+    "verification",
+    "recorded_at",
+    "evidence_digest",
+    "signature"
+  ],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "protocol_version": {"const": "greenrails.settlement.v1"},
+    "mock": {"$ref": "settlement-quote.schema.json#/$defs/mock_flag"},
+    "display_notice": {"$ref": "settlement-quote.schema.json#/$defs/display_notice"},
+    "settlement_id": {"type": "string", "minLength": 1},
+    "quote_id": {"type": "string", "minLength": 1},
+    "quote_digest": {"$ref": "settlement-quote.schema.json#/$defs/digest"},
+    "idempotency_key": {"type": "string", "minLength": 8},
+    "final_state": {"$ref": "settlement-state.schema.json#/$defs/terminal_state"},
+    "outcome": {
+      "$ref": "receipt.schema.json#/properties/outcome",
+      "description": "Maps final_state onto the Pay Receipt outcome vocabulary: RECEIPT_FINALIZED->succeeded, QUOTE_EXPIRED->expired, REFUNDED->refunded, INPUT_FAILED|INSUFFICIENT_LIQUIDITY->failed, MANUAL_REVIEW->failed (pending operator resolution)."
+    },
+    "buyer_id": {"type": "string", "minLength": 1},
+    "seller_id": {"type": "string", "minLength": 1},
+    "nft": {"$ref": "settlement-quote.schema.json#/$defs/listing/properties/nft"},
+    "legs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input", "xents", "usdc_payout"],
+      "properties": {
+        "input": {"$ref": "#/$defs/leg_result"},
+        "xents": {"$ref": "#/$defs/leg_result"},
+        "usdc_payout": {"$ref": "#/$defs/leg_result"},
+        "refund": {"$ref": "#/$defs/leg_result"}
+      }
+    },
+    "fees": {"$ref": "settlement-quote.schema.json#/properties/fees"},
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nft_transfer_verified", "usdc_payout_verified"],
+      "properties": {
+        "nft_transfer_verified": {"type": "boolean"},
+        "usdc_payout_verified": {"type": "boolean"},
+        "nft_tx_reference": {"type": "string"},
+        "usdc_tx_reference": {"type": "string"},
+        "nft_confirmations": {"type": "integer", "minimum": 0},
+        "usdc_confirmations": {"type": "integer", "minimum": 0}
+      }
+    },
+    "pay_receipt": {"$ref": "receipt.schema.json"},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "evidence_digest": {"$ref": "settlement-quote.schema.json#/$defs/digest"},
+    "previous_receipt_digest": {"$ref": "settlement-quote.schema.json#/$defs/digest"},
+    "signature": {"$ref": "#/$defs/signature_envelope"},
+    "metadata": {"type": "object"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"final_state": {"const": "RECEIPT_FINALIZED"}}},
+      "then": {
+        "properties": {
+          "outcome": {"const": "succeeded"},
+          "verification": {
+            "type": "object",
+            "properties": {
+              "nft_transfer_verified": {"const": true},
+              "usdc_payout_verified": {"const": true},
+              "nft_tx_reference": {"type": "string", "minLength": 1},
+              "usdc_tx_reference": {"type": "string", "minLength": 1}
+            },
+            "required": ["nft_tx_reference", "usdc_tx_reference"]
+          }
+        }
+      },
+      "else": {"properties": {"outcome": {"not": {"const": "succeeded"}}}}
+    },
+    {
+      "if": {"properties": {"final_state": {"const": "REFUNDED"}}},
+      "then": {
+        "properties": {"outcome": {"const": "refunded"}, "legs": {"type": "object", "properties": {"refund": {"$ref": "#/$defs/leg_result"}}, "required": ["refund"]}}
+      }
+    },
+    {
+      "if": {"properties": {"final_state": {"const": "QUOTE_EXPIRED"}}},
+      "then": {"properties": {"outcome": {"const": "expired"}}}
+    }
+  ],
+  "$defs": {
+    "leg_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset", "amount", "status"],
+      "properties": {
+        "asset": {"type": "string", "minLength": 2},
+        "chain": {"$ref": "settlement-quote.schema.json#/$defs/chain"},
+        "amount": {"$ref": "settlement-quote.schema.json#/$defs/amount"},
+        "status": {"enum": ["not_started", "authorized", "completed", "failed", "voided", "refunded", "held"]},
+        "reference": {"type": "string"}
+      }
+    },
+    "signature_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alg", "kid", "signer", "canonicalization", "payload_digest", "value", "signed_at"],
+      "properties": {
+        "alg": {"enum": ["ed25519", "es256", "es256k", "mock-none"]},
+        "kid": {"type": "string", "minLength": 1},
+        "signer": {"type": "string", "minLength": 1, "description": "Signing authority id, e.g. greenrails-settlement-signer (T2)."},
+        "canonicalization": {"const": "rfc8785-jcs"},
+        "payload_digest": {"$ref": "settlement-quote.schema.json#/$defs/digest", "description": "sha256 over the JCS-canonical receipt with `signature` removed."},
+        "value": {"type": "string", "minLength": 1},
+        "signed_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "id": "settle_usdc_01",
+  "protocol_version": "greenrails.settlement.v1",
+  "mock": true,
+  "display_notice": "MOCK SETTLEMENT · NO FUNDS WILL MOVE",
+  "idempotency_key": "grn-usdc-0001",
+  "quote_id": "quote_usdc_01",
+  "quote_digest": "sha256:quote_usdc_01-digest",
+  "state": "NFT_TRANSFER_PENDING",
+  "terminal": false,
+  "reservation": {
+    "id": "res_01",
+    "asset": "USDC",
+    "chain": "base",
+    "amount": "40.00",
+    "liquidity_source": "mock-liquidity-pool",
+    "status": "held",
+    "reserved_at": "2026-09-08T12:01:00Z",
+    "expires_at": "2026-09-08T12:16:00Z"
+  },
+  "input_authorization": {
+    "id": "auth_02",
+    "rail": "base_usdc",
+    "asset": "USDC",
+    "amount": "43.00",
+    "status": "captured",
+    "provider": "mock-base-observer",
+    "provider_reference": "mock_base_deposit_01",
+    "authorized_at": "2026-09-08T12:02:00Z"
+  },
+  "xents_route": {
+    "id": "route_01",
+    "route_provider": "mock-router",
+    "amount_in": "42.95",
+    "amount_out": "1000",
+    "status": "routed",
+    "route_digest": "sha256:mock-route-digest-0001",
+    "routed_at": "2026-09-08T12:03:00Z"
+  },
+  "nft_transfer": {
+    "chain": "ethereum",
+    "contract": "0xLEGACY000000000000000000000000000000000001",
+    "token_id": "1042",
+    "from": "0xSELLER00000000000000000000000000000000001",
+    "to": "0xBUYER000000000000000000000000000000000001",
+    "status": "submitted",
+    "tx_reference": "mock_eth_tx_01",
+    "confirmations": 3,
+    "required_confirmations": 12
+  },
+  "transitions": [
+    {
+      "from": null,
+      "to": "QUOTED",
+      "at": "2026-09-08T12:00:00Z",
+      "actor": "greenrails",
+      "reason_code": "quote_issued",
+      "evidence_digest": "sha256:evidence-quoted-00"
+    },
+    {
+      "from": "QUOTED",
+      "to": "USDC_RESERVED",
+      "at": "2026-09-08T12:01:00Z",
+      "actor": "liquidity_provider",
+      "reason_code": "usdc_hold_confirmed",
+      "evidence_digest": "sha256:evidence-usdc_reserved-01"
+    },
+    {
+      "from": "USDC_RESERVED",
+      "to": "INPUT_AUTHORIZED",
+      "at": "2026-09-08T12:02:00Z",
+      "actor": "chain_observer",
+      "reason_code": "deposit_confirmed",
+      "evidence_digest": "sha256:evidence-input_authorized-02"
+    },
+    {
+      "from": "INPUT_AUTHORIZED",
+      "to": "XENTS_ROUTED",
+      "at": "2026-09-08T12:03:00Z",
+      "actor": "greenrails",
+      "reason_code": "exact_output_routed",
+      "evidence_digest": "sha256:evidence-xents_routed-03"
+    },
+    {
+      "from": "XENTS_ROUTED",
+      "to": "NFT_TRANSFER_PENDING",
+      "at": "2026-09-08T12:04:00Z",
+      "actor": "seller",
+      "reason_code": "transfer_submitted",
+      "evidence_digest": "sha256:evidence-nft_transfer_pending-04"
+    }
+  ],
+  "updated_at": "2026-09-08T12:04:00Z"
+}

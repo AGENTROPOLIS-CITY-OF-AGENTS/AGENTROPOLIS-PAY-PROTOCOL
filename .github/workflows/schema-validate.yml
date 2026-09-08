@@ -1,0 +1,23 @@
+name: schema-validate
+
+on:
+  push:
+    branches: [main]
+    paths: ["schemas/**", "examples/**", "tests/**", ".github/workflows/schema-validate.yml"]
+  pull_request:
+    paths: ["schemas/**", "examples/**", "tests/**", ".github/workflows/schema-validate.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+        working-directory: tests
+      - run: node tests/validate-schemas.mjs

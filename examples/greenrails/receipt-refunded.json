@@ -1,0 +1,79 @@
+{
+  "id": "rcpt_card_02",
+  "protocol_version": "greenrails.settlement.v1",
+  "mock": true,
+  "display_notice": "MOCK SETTLEMENT · NO FUNDS WILL MOVE",
+  "idempotency_key": "grn-card-0001",
+  "settlement_id": "settle_card_02",
+  "quote_id": "quote_card_01",
+  "quote_digest": "sha256:quote_card_01-digest",
+  "final_state": "REFUNDED",
+  "outcome": "refunded",
+  "buyer_id": "buyer_mock_01",
+  "seller_id": "seller_mock_01",
+  "nft": {
+    "chain": "ethereum",
+    "contract": "0xLEGACY000000000000000000000000000000000001",
+    "token_id": "1042",
+    "owner_at_quote": "0xSELLER00000000000000000000000000000000001",
+    "collection": "Legacy Genesis"
+  },
+  "legs": {
+    "input": {
+      "asset": "USD",
+      "amount": "45.00",
+      "status": "refunded",
+      "reference": "mock_auth_01"
+    },
+    "xents": {
+      "asset": "XENTS",
+      "amount": "1000",
+      "status": "voided",
+      "chain": "base"
+    },
+    "usdc_payout": {
+      "asset": "USDC",
+      "amount": "40.00",
+      "status": "voided",
+      "chain": "base"
+    },
+    "refund": {
+      "asset": "USD",
+      "amount": "45.00",
+      "status": "completed",
+      "reference": "mock_refund_01"
+    }
+  },
+  "fees": [
+    {
+      "code": "processing",
+      "payer": "buyer",
+      "asset": "USD",
+      "amount": "1.50",
+      "description": "card processing"
+    },
+    {
+      "code": "platform",
+      "payer": "seller",
+      "asset": "USDC",
+      "amount": "2.00"
+    }
+  ],
+  "verification": {
+    "nft_transfer_verified": false,
+    "usdc_payout_verified": false,
+    "nft_tx_reference": "mock_eth_tx_01",
+    "nft_confirmations": 0
+  },
+  "recorded_at": "2026-09-08T12:08:00Z",
+  "evidence_digest": "sha256:evidence-log-rcpt_card_02",
+  "signature": {
+    "alg": "mock-none",
+    "kid": "mock-key-01",
+    "signer": "greenrails-settlement-signer",
+    "canonicalization": "rfc8785-jcs",
+    "payload_digest": "sha256:receipt-payload-08",
+    "value": "MOCK-SIGNATURE",
+    "signed_at": "2026-09-08T12:08:00Z"
+  }
+}
